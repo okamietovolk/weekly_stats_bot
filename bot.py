@@ -8,8 +8,7 @@ bot = tb.TeleBot(settings.bot_token)
 def anounceMarkup():
     markup = InlineKeyboardMarkup()
     markup.row_width = 1
-    markup.add(InlineKeyboardButton("GitHub", url="t.me/weristvlad"))
+    markup.add(InlineKeyboardButton("GitHub", url="https://github.com/okamietovolk/weekly_stats_bot"))
     return markup
     
-
-bot.send_message(settings.publish_chat, getStats(), parse_mode="HTML", reply_markup=anounceMarkup())
+bot.send_message(settings.channel('test'), getStats(), parse_mode="HTML", reply_markup=anounceMarkup(), disable_web_page_preview=True)

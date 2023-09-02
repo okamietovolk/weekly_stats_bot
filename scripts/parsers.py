@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import json
 from datetime import datetime, timedelta
+import pydrive
 
 bookmateWeb = 'https://bookmate.ru/'
 bookmateRecent = "/books/recent"
@@ -106,7 +107,8 @@ def getWorkouts():
     health = health['data']
     workouts = health['workouts']
     distance = 0
-    bestTime = timedelta()
+    bestTime5 = timedelta()
+    bestTime10 = timedelta()
     yogahours = 0
     runs = [workout for workout in workouts if workout['name'] == 'Running']
     yogas = [workout for workout in workouts if workout['name'] == 'Yoga']
@@ -114,8 +116,13 @@ def getWorkouts():
         distance = distance + run['distance']['qty']
         if int(round(run['distance']['qty'], 0)) == 5:
             time = datetime.strptime(run['end'], '%Y-%m-%d %H:%M:%S %z') - datetime.strptime(run['start'], '%Y-%m-%d %H:%M:%S %z')
-            if time < bestTime or bestTime == timedelta():
-                bestTime = time
+            if time < bestTime5 or bestTime5 == timedelta():
+                bestTime5 = time
+                print(bestTime5)
+        if int(round(run['distance']['qty'], 0)) == 10:
+            time = datetime.strptime(run['end'], '%Y-%m-%d %H:%M:%S %z') - datetime.strptime(run['start'], '%Y-%m-%d %H:%M:%S %z')
+            if time < bestTime10 or bestTime10 == timedelta():
+                bestTime10 = time
         # тут данные епты
         runQ = len(runs)
         
@@ -129,7 +136,7 @@ def getWorkouts():
     yogaHours = int(total_seconds // 3600)
     yogaMinutes = int((total_seconds % 3600) // 60)
     
-    return  {'distance': distance, 'bestTime': bestTime, 'yogaHours': yogaHours, 'yogaMinutes': yogaMinutes}
+    return  {'distance': distance, 'bestTime5': bestTime5, 'bestTime10': bestTime10, 'yogaHours': yogaHours, 'yogaMinutes': yogaMinutes}
 
 def getLastFMtopTrack7(username):
     url = lastFMuserURL + username

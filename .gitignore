@@ -1,2 +1,7 @@
 settings.py
 scripts/keydata.py
+client_secrets.json
+credentials.json
+data/healthkit.db
+data/export.zip
+data/экспорт.zip

@@ -1,4 +1,4 @@
-from scripts import keydata
+from scripts import keydata, server, utils
 from scripts.parsers import *
 from pathlib import(Path)
 import json
@@ -7,7 +7,7 @@ import datetime
 
 today = datetime.date.today()
 weekBefore = today - datetime.timedelta(days=6)
-week = f'{today.strftime("%d/%m")} - {weekBefore.strftime("%d/%m") } {today.strftime("%Y")}'
+week = f'{weekBefore.strftime("%d/%m")} - {today.strftime("%d/%m")} - {today.strftime("%Y")}'
  
 
 combolist = {'bookmate': getBookmateFinished(keydata.bookmateLogin), 'letterboxd': getLetterboxdRecent(keydata.letterboxdLogin)}
@@ -31,7 +31,6 @@ def getStats():
     with open(Path('data/diff.json'), 'w+') as f:
         json.dump(diff, f)
 
-    print(diff)
     output = f'✨⭐️Автоматическая недельная статистика!⭐️✨\n\n📆 Неделя {week}\n\n'
 
     for soc in social:
@@ -48,9 +47,12 @@ def getStats():
                 
                     currentReading = getBookmateCurrent(keydata.bookmateLogin)
                     if currentReading:
+                        bookemojis = ['📔', '📓']
                         output = output + '📖 Сейчас читаю:\n'
+                        i = 0
                         for entry in currentReading:
-                            output = output + f'📜 <a href=\"{entry["link"]}\">{entry["title"]}</a> - {entry["author"]} 📜\n'
+                            output = output + f'{bookemojis[i]} <a href=\"{entry["link"]}\">{entry["title"]}</a> - {entry["author"]} {bookemojis[i]}\n'
+                            i = (i + 1) % len(bookemojis)
                         output = output + '\n'
 
                     output = output + '📚 На этой неделе дочитал:\n'
@@ -62,13 +64,15 @@ def getStats():
 
             output = output + '\n\n'
 
-    workouts = getWorkouts()
-    if workouts['bestTime'] != timedelta():
-        km5message = f'🏃Лучшее время на 5 км: {workouts["bestTime"]}\n'
-    output = output + f'🏃🏻‍♂️ Пробежал: {round(workouts["distance"], 2)} км\n{km5message}🧘🏼 Занимался йогой: {workouts["yogaHours"]} часа {workouts["yogaMinutes"]} минут'
+    stepSum, calSum, yogaMinutes, runMinutes, rvo2max = utils.parseHealthData()
+    output = output + f'👣 Пройдено шагов за неделю: {stepSum}\n🔥 Сожжено калорий: {calSum}\n\
+🧘🏼 Занимался йогой: {yogaMinutes} {utils.timeCong(yogaMinutes, "minutes")}\n\
+🏃 Бегал: {runMinutes} {utils.timeCong(runMinutes, "minutes")}\n\
+❣️ Показатель <a href=\"https://ru.wikipedia.org/wiki/Максимальное_потребление_кислорода\">МПК</a>: {rvo2max}'
     
+
     weekTrack = getLastFMtopTrack7(keydata.lastFMlogin)
     if weekTrack:
-        output = output + f'\n\n🎹 Трек недели:\n<a href=\"{weekTrack["link"]}\">{weekTrack["title"]}</a> - {weekTrack["artist"]}'
+        output = output + f'\n\n🎹 Трек недели:\n🎶 <a href=\"{weekTrack["link"]}\">{weekTrack["title"]}</a> - {weekTrack["artist"]} 🎶'
             
     return output
