@@ -1,16 +1,22 @@
-from scripts import keydata, server, utils
+from scripts import keydata, utils
 from scripts.parsers import *
 from pathlib import(Path)
 import json
 import datetime
+
+zip_path = Path('data/экспорт.zip')
+db_path = Path('data/healthkit.db')
 
 
 today = datetime.date.today()
 weekBefore = today - datetime.timedelta(days=6)
 week = f'{weekBefore.strftime("%d/%m")} - {today.strftime("%d/%m")} - {today.strftime("%Y")}'
  
+bookm = bookmate(keydata.bookmateLogin)
+letter = letterboxd(keydata.letterboxdLogin)
+health = healthData(zip_path, db_path)
 
-combolist = {'bookmate': getBookmateFinished(keydata.bookmateLogin), 'letterboxd': getLetterboxdRecent(keydata.letterboxdLogin)}
+combolist = {'bookmate': bookm.getFinished(), 'letterboxd': letter.getRecent()}
 
 def getStats():
     with open(Path('data/saved.json')) as fp:
@@ -57,7 +63,7 @@ def getStats():
 
             output = output + '\n\n'
 
-    currentReading = getBookmateCurrent(keydata.bookmateLogin)
+    currentReading = bookm.getCurrent()
     if currentReading:
         bookemojis = ['📔', '📓']
         output = output + '📖 Сейчас читаю:\n'
@@ -67,12 +73,15 @@ def getStats():
             output = output + f'{bookemojis[i]} <a href=\"{entry["link"]}\">{entry["title"]}</a> - {entry["author"]} {bookemojis[i]}\n'
             i = (i + 1) % len(bookemojis)
         output = output + '\n'
+
+    stepSum = health.weeklySteps()
+    calSum = health.weeklyCalories()
+    yogaMinutes, runMinutes = health.workoutTime()
     
-    stepSum, calSum, yogaMinutes, runMinutes, rvo2max = utils.parseHealthData()
     output = output + f'👣 Пройдено шагов за неделю: {stepSum}\n🔥 Сожжено калорий на тренировках: {calSum}\n\
 🧘🏼 Занимался йогой: {yogaMinutes} {utils.timeCong(yogaMinutes, "minutes")}\n\
 🏃 Бегал: {runMinutes} {utils.timeCong(runMinutes, "minutes")}\n\
-❣️ Показатель <a href=\"https://ru.wikipedia.org/wiki/Максимальное_потребление_кислорода\">МПК</a>: {rvo2max}'
+❣️ Показатель <a href=\"https://ru.wikipedia.org/wiki/Максимальное_потребление_кислорода\">МПК</a>: {health.rvo2max}'
     
 
     weekTrack = getLastFMtopTrack7(keydata.lastFMlogin)
